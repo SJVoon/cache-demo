@@ -50,3 +50,45 @@ code :
 `System.out.println(cacheManager.getClass());`  
 log : 
 `class org.springframework.cache.caffeine.CaffeineCacheManager`
+
+# v3 Using JSR-107 standard Ehcache 3
+
+1. add dependency
+```
+<dependency>
+    <groupId>org.ehcache</groupId>
+    <artifactId>ehcache</artifactId>
+    <classifier>jakarta</classifier>
+</dependency>
+```
+2. add this field to application.properties  
+```
+spring.cache.jcache.config=classpath:ehcache.xml
+```
+3. add ehcache.xml file at /resource following where the classpath above defined
+```
+<config
+        xmlns='http://www.ehcache.org/v3'
+        xmlns:jsr107='http://www.ehcache.org/v3/jsr107'>
+
+    <service>
+        <jsr107:defaults enable-statistics="true"/>
+    </service>
+
+    <cache alias="CACHE_TIME">
+        <expiry>
+            <ttl unit="seconds">300</ttl>
+        </expiry>
+        <resources>
+            <offheap unit="MB">100</offheap>
+        </resources>
+    </cache>
+</config>
+```
+(cache alias, expiry, and resources is the required field for a cache to be defined)  
+*expiry is optional but recommended for ease of documentation the lifetime of the cache*
+
+4. Remove the `CacheConfig` class that was written for Caffeine  
+*caffeine will be used if CacheConfig class is defined to use Caffeine as CacheManager,  
+otherwise if caffeine and JSR-107 cache dependency is exist together  
+without configuration class, JSR-107 cache is prioritise*
